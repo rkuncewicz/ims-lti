@@ -58,7 +58,7 @@ class Provider
     supported_message_types = ['basic-lti-launch-request', 'ContentItemSelectionRequest']
     correct_message_type = body.lti_message_type in supported_message_types
     correct_version      = require('./ims-lti').supported_versions.indexOf(body.lti_version) isnt -1
-    has_resource_link_id = body.resource_link_id?
+    has_resource_link_id = body.resource_link_id? or body.lti_message_type is supported_message_types[1]
     correct_message_type and correct_version and has_resource_link_id
 
 
