@@ -36,8 +36,8 @@ class Consumer
     body.oauth_consumer_key = @consumer_key
     body.oauth_signature_method = 'HMAC-SHA1'
     body.oauth_timestamp = Math.floor(new Date() / 1000)
-    body.oauth_version = "1.0"
-    body.oauth_callback = "about:blank"
+    body.oauth_version = '1.0'
+    body.oauth_callback = 'about:blank'
 
     sig = @signer.build_signature urlInfo, body, @consumer_secret
     body.oauth_signature = sig
