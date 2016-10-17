@@ -4,7 +4,7 @@ errors            = require './errors'
 extensions        = require './extensions'
 
 class Consumer
-  constructor: (consumer_key, consumer_secret) ) ->
+  constructor: (consumer_key, consumer_secret) ->
 
     if typeof consumer_key is 'undefined' or consumer_key is null
       throw new errors.ConsumerError 'Must specify consumer_key'
@@ -14,16 +14,10 @@ class Consumer
 
     @consumer_key     = consumer_key
     @consumer_secret  = consumer_secret
-    @signer           = signature_method
+    @signer           = new HMAC_SHA1()
     @body             = {}
 
-  encode_request: (urlInfo, body, callback) =>
-    if not callback
-      callback = body
-      body = undefined
-
-    callback = callback or () ->
-
+  encode_request: (urlInfo, body) =>
     body.oauth_nonce = crypto.randomBytes(Math.ceil(16)).toString('hex').slice(0, 32)
     body.oauth_consumer_key = @consumer_key
     body.oauth_signature_method = 'HMAC-SHA1'
@@ -34,6 +28,6 @@ class Consumer
     sig = @signer.build_signature urlInfo, body, @consumer_secret
     body.oauth_signature = sig
 
-    callback null, body
+    return body
 
 exports = module.exports = Consumer
