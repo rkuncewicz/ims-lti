@@ -6,7 +6,7 @@ extensions        = require './extensions'
 
 
 class Provider
-  constructor: (consumer_key, consumer_secret, nonceStore, signature_method=(new HMAC_SHA1()) ) ->
+  constructor: ({consumer_key, consumer_secret, nonceStore, signature_method=(new HMAC_SHA1()), providerOptions}={}) ->
 
     if typeof consumer_key is 'undefined' or consumer_key is null
       throw new errors.ConsumerError 'Must specify consumer_key'
@@ -16,6 +16,11 @@ class Provider
 
     if not nonceStore
       nonceStore = new MemoryNonceStore()
+	  
+    if providerOptions?
+      @authEnabled = if providerOptions.authEnabled? then providerOptions.authEnabled else true
+    else 
+      @authEnabled = true
 
     if not nonceStore.isNonceStore?()
       throw new errors.ParameterError 'Fourth argument must be a nonceStore object'
@@ -77,9 +82,14 @@ class Provider
   _valid_oauth: (req, body, callback) ->
     generated = @signer.build_signature req, body, @consumer_secret
     valid_signature = generated is body.oauth_signature
-    return callback new errors.SignatureError('Invalid Signature'), false if not valid_signature
+   
+    if not valid_signature and @authEnabled
+      return callback new errors.SignatureError('Invalid Signature'), false 
+    else
+      callback null, true
+		 
     @nonceStore.isNew body.oauth_nonce, body.oauth_timestamp, (err, valid) ->
-      if not valid
+      if not valid and @authEnabled
         callback new errors.NonceError('Expired nonce'), false
       else
         callback null, true
